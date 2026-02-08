@@ -1,18 +1,19 @@
 from logging.config import dictConfig
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from .instance import APP_SETTINGS
+if TYPE_CHECKING:
+    from .classes import LoggingSettings
 
 
-def setup_logging() -> None:
+def setup_logging(settings: LoggingSettings) -> None:
     """Setup logging."""
     log_config: dict[str, Any] = {
         "version": 1,
         "disable_existing_loggers": False,
         "formatters": {
             "default": {
-                "format": APP_SETTINGS.logging.log_format,
-                "datefmt": APP_SETTINGS.logging.log_date_format,
+                "format": settings.log_format,
+                "datefmt": settings.log_date_format,
             },
         },
         "handlers": {
@@ -23,21 +24,20 @@ def setup_logging() -> None:
             "log_file": {
                 "class": "logging.FileHandler",
                 "formatter": "default",
-                "filename": APP_SETTINGS.logging.directory
-                / APP_SETTINGS.logging.log_file,
+                "filename": settings.directory / settings.log_file,
                 "encoding": "utf-8",
             },
         },
         "loggers": {
             "": {
                 "handlers": ["log_file", "console"],
-                "level": APP_SETTINGS.logging.log_level,
+                "level": settings.log_level,
                 "propagate": False,
             },
         },
     }
 
-    if not APP_SETTINGS.logging.directory.exists():
-        APP_SETTINGS.logging.directory.mkdir(parents=True, exist_ok=True)
+    if not settings.directory.exists():
+        settings.directory.mkdir(parents=True, exist_ok=True)
 
     dictConfig(log_config)

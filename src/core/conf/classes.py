@@ -1,7 +1,8 @@
 from pathlib import Path
 from typing import Literal
+from zoneinfo import ZoneInfo
 
-from pydantic import BaseModel
+from pydantic import AliasPath, BaseModel, Field
 from pydantic_settings import (
     BaseSettings,
     PydanticBaseSettingsSource,
@@ -10,13 +11,15 @@ from pydantic_settings import (
 )
 
 type LogLevel = Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
-type SourceType = Literal["HH",]
+type SourceType = Literal["HH", "HABR"]
 
 
 class BaseSettingsConfig(BaseSettings):
     """Base settings."""
 
     model_config = SettingsConfigDict(
+        env_file=".env",
+        env_nested_delimiter="__",
         toml_file=["pyproject.toml", "settings.toml"],
         case_sensitive=False,
         validate_default=True,
@@ -42,21 +45,6 @@ class BaseSettingsConfig(BaseSettings):
         )
 
 
-class ProjectSettings(BaseModel):
-    """Pyproject information."""
-
-    name: str = "unknown"
-    version: str = "unknown"
-    description: str = "unknown"
-
-
-class SourceSettings(BaseModel):
-    """Source settings."""
-
-    url: str
-    source_type: SourceType
-
-
 class LoggingSettings(BaseModel):
     """Logging settings."""
 
@@ -67,9 +55,52 @@ class LoggingSettings(BaseModel):
     log_file: str = "app.log"
 
 
-class AppSettings(BaseSettingsConfig):
+class ProjectSettings(BaseModel):
+    """Pyproject information."""
+
+    name: str = "unknown"
+    version: str = "unknown"
+    description: str = "unknown"
+
+
+class ObserverSchedulerSettings(BaseModel):
+    """Application settings."""
+
+    time_zone: ZoneInfo = ZoneInfo("UTC")
+
+
+class SourceSettings(BaseModel):
+    """Source settings."""
+
+    url: str
+    source_type: SourceType
+    period_minutes: int
+
+
+class ObserverSettings(BaseSettingsConfig):
     """Application settings."""
 
     project: ProjectSettings
+    scheduler: ObserverSchedulerSettings
     sources: list[SourceSettings]
-    logging: LoggingSettings = LoggingSettings()
+
+    logging: LoggingSettings = Field(
+        validation_alias=AliasPath("observer", "logging")
+    )
+
+
+class TgBotConfig(BaseModel):
+    """Telegram bot settings."""
+
+    token: str
+    user_ids: list[int]
+
+
+class TgBotSettings(BaseSettingsConfig):
+    """Telegram bot settings."""
+
+    tg_bot: TgBotConfig
+
+    logging: LoggingSettings = Field(
+        validation_alias=AliasPath("tg_bot", "logging")
+    )

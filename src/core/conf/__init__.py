@@ -1,21 +1,27 @@
 from .classes import (
-    AppSettings,
+    BaseSettingsConfig,
     LoggingSettings,
     LogLevel,
+    ObserverSchedulerSettings,
+    ObserverSettings,
     ProjectSettings,
     SourceSettings,
     SourceType,
+    TgBotConfig,
+    TgBotSettings,
 )
-from .instance import APP_SETTINGS
 from .logging import setup_logging
 
 __all__ = [
-    "APP_SETTINGS",
-    "AppSettings",
+    "BaseSettingsConfig",
     "LogLevel",
     "LoggingSettings",
+    "ObserverSchedulerSettings",
+    "ObserverSettings",
     "ProjectSettings",
     "SourceSettings",
     "SourceType",
+    "TgBotConfig",
+    "TgBotSettings",
     "setup_logging",
 ]
