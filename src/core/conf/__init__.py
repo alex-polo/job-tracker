@@ -1,5 +1,6 @@
 from .classes import (
     BaseSettingsConfig,
+    DatabaseSettings,
     LoggingSettings,
     LogLevel,
     ObserverSchedulerSettings,
@@ -14,6 +15,7 @@ from .logging import setup_logging
 
 __all__ = [
     "BaseSettingsConfig",
+    "DatabaseSettings",
     "LogLevel",
     "LoggingSettings",
     "ObserverSchedulerSettings",

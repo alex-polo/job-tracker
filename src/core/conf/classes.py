@@ -1,8 +1,8 @@
 from pathlib import Path
-from typing import Literal
+from typing import ClassVar, Literal, Self
 from zoneinfo import ZoneInfo
 
-from pydantic import AliasPath, BaseModel, Field
+from pydantic import AliasPath, BaseModel, Field, computed_field
 from pydantic_settings import (
     BaseSettings,
     PydanticBaseSettingsSource,
@@ -104,3 +104,64 @@ class TgBotSettings(BaseSettingsConfig):
     logging: LoggingSettings = Field(
         validation_alias=AliasPath("tg_bot", "logging")
     )
+
+
+class DatabaseSettings(BaseSettingsConfig):
+    """Database settings configuration."""
+
+    _instance: ClassVar[Self | None] = None
+
+    database_path: Path = Field(
+        validation_alias=AliasPath(
+            "database",
+            "database_path",
+        )
+    )
+    echo: bool = Field(
+        default=False,
+        validation_alias=AliasPath(
+            "database",
+            "echo",
+        ),
+    )
+    echo_pool: bool = Field(
+        default=False,
+        validation_alias=AliasPath(
+            "database",
+            "echo_pool",
+        ),
+    )
+    autoflush: bool = Field(
+        default=False,
+        validation_alias=AliasPath(
+            "database",
+            "autoflush",
+        ),
+    )
+    expire_on_commit: bool = Field(
+        default=False,
+        validation_alias=AliasPath(
+            "database",
+            "expire_on_commit",
+        ),
+    )
+
+    naming_convention: dict[str, str] = {
+        "ix": "ix_%(column_0_label)s",
+        "uq": "uq_%(table_name)s_%(column_0_N_name)s",
+        "ck": "ck_%(table_name)s_%(constraint_name)s",
+        "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+        "pk": "pk_%(table_name)s",
+    }
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def database_uri(self) -> str:
+        """Get SQLite connection URI."""
+        return f"sqlite+aiosqlite:///{self.database_path.as_posix()}"
+
+    def __new__(cls, *args: object, **kwargs: object) -> Self:  # noqa: ARG004
+        """Create singleton instance."""
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
