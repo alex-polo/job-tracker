@@ -1,3 +1,4 @@
+import enum
 from pathlib import Path
 from typing import ClassVar, Literal, Self
 from zoneinfo import ZoneInfo
@@ -11,7 +12,13 @@ from pydantic_settings import (
 )
 
 type LogLevel = Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
-type SourceType = Literal["HH", "HABR"]
+
+
+class SourceType(enum.Enum):
+    """Source type."""
+
+    HH = "HH"
+    HABR = "HABR"
 
 
 class BaseSettingsConfig(BaseSettings):
