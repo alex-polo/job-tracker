@@ -2,20 +2,20 @@ import logging
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from playwright.async_api import async_playwright
 from playwright.async_api._generated import Locator
 
 from src.services.observer.entity import VacanciesList, VacancyEntity
-from src.services.observer.loaders.base import ILoader
+
+from .base import BasePlaywrightLoader
 
 if TYPE_CHECKING:
-    from playwright.async_api._generated import Browser, Locator, Page
+    from playwright.async_api._generated import Locator, Page
 
 
 log = logging.getLogger(__name__)
 
 
-class PlaywrightLoader(ILoader):
+class HeadHunterLoader(BasePlaywrightLoader):
     """Loader implementation using Playwright for web automation.
 
     This loader handles dynamic content rendering and provides robust
@@ -113,34 +113,3 @@ class PlaywrightLoader(ILoader):
 
         log.debug("Successfully parsed %d vacancies", len(vacancies_list))
         return vacancies_list
-
-    async def receiving_vacancies(self, url: str) -> VacanciesList:
-        """Initializes the browser, navigates to the URL, and triggers parsing.
-
-        Uses async_playwright context manager to ensure all browser resources
-        are properly closed after execution or in case of an error.
-
-        Args:
-            url (str): The search results URL to parse.
-
-        Returns:
-            VacanciesList: The list of extracted vacancies.
-        """
-        log.debug("Starting Playwright automation for URL: %s", url)
-
-        async with async_playwright() as p:
-            log.debug("Launching Chromium browser")
-            browser: Browser = await p.chromium.launch(headless=True)
-
-            page: Page = await browser.new_page()
-
-            log.debug("Navigating to page...")
-            await page.goto(url)
-
-            log.debug("Waiting for network idle state")
-            await page.wait_for_load_state("networkidle")
-
-            result = await self._parse_html(page)
-
-            log.debug("Browser session closing automatically")
-            return result
