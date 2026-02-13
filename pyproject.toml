@@ -47,6 +47,7 @@ exclude = [
     ".ruff_cache",
     ".venv",
     ".vscode",
+    ".idea",
     "__pypackages__",
     "__pycache__",
 ]
@@ -74,7 +75,6 @@ select = [
     "ANN",      # flake8-annotations: Требует аннотации типов
     "PLE",      # Pylint errors: Ошибки от Pylint
     "PLW",      # Pylint warnings: Предупреждения от Pylint
-    "FAST",     # FastAPI: Проверяет правильное использование FastAPI
     "ASYNC",    # flake8-async: Проверяет асинхронный код
 ]
 ignore = [
@@ -91,6 +91,8 @@ max-complexity = 10
 
 [tool.ruff.lint.isort]
 known-first-party = ["src"]
+# required-imports = ["from __future__ import annotations"]
+
 
 
 [tool.ruff.lint.flake8-annotations]
@@ -99,6 +101,13 @@ suppress-none-returning = true
 
 [tool.ruff.lint.flake8-builtins]
 builtins-ignorelist = ["id", "type"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/services/observer/models/*.py" = ["TCH001", "TCH002"]
+"src/core/database/*.py" = ["TCH001", "TCH002", "N805"]
+
+[tool.ruff.lint.pylint]
+allow-dunder-method-names = ["__tablename__", "__table_args__"]
 
 [tool.ruff.format]
 quote-style = "double"
