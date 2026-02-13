@@ -79,12 +79,3 @@ class DatabaseManager:
 DB_MANAGER: Final[DatabaseManager] = DatabaseManager(
     db_settings=DatabaseSettings()  # type: ignore
 )
-
-
-# async def main():
-#     # Просто вызываем контекстный менеджер
-#     async with DB_MANAGER.session() as session:
-#         # Сессия открыта и активна
-#         new_vacancy = VacancyEntity(...)
-#         session.add(new_vacancy)
-#         await session.commit()
