@@ -160,8 +160,15 @@ class DatabaseSettings(BaseSettingsConfig):
         """Get SQLite connection URI."""
         return f"sqlite+aiosqlite:///{self.database_path.as_posix()}"
 
-    def __new__(cls, *args: object, **kwargs: object) -> Self:  # noqa: ARG004
+    def __new__(cls, *args: object, **kwargs: object) -> Self:
         """Create singleton instance."""
         if cls._instance is None:
             cls._instance = super().__new__(cls)
+
+            cls._instance.__init__(*args, **kwargs)
+
+            if cls._instance.database_path:
+                db_dir: Path = cls._instance.database_path.parent
+                db_dir.mkdir(parents=True, exist_ok=True)
+
         return cls._instance
