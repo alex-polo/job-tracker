@@ -1,0 +1,29 @@
+[scheduler]
+time_zone = "Europe/Moscow"
+
+
+[database]
+database_path = "data/db.sqlite"
+echo = false
+echo_pool = false
+autoflush = false
+expire_on_commit = false
+
+[observer.logging]
+log_level = "DEBUG"
+log_format = "%(asctime)s %(levelname)6s %(name)s: %(message)s"
+log_date_format = "%Y-%m-%d %H:%M:%S"
+directory = "logs"
+log_file = "observer.log"
+
+[[sources]]
+url = "https://hh.ru/search/vacancy?text=python+fastapi&area=1&enable_snippets=true&items_on_page=50&order_by=publication_time"
+source_type = "HH"
+period_minutes=1
+
+[tg_bot.logging]
+log_level = "DEBUG"
+log_format = "%(asctime)s %(levelname)6s %(name)s: %(message)s"
+log_date_format = "%Y-%m-%d %H:%M:%S"
+directory = "logs"
+log_file = "tg_bot.log"
