@@ -1,0 +1,26 @@
+name: job-tracker
+
+services:
+  rabbitmq:
+    image: "rabbitmq:4.2.0-management-alpine"
+    container_name: rabbitmq_v4.2
+    hostname: "rabbitmq"
+    restart: unless-stopped
+    ports:
+      - "${RABBITMQ_PORT_STREAM_PROTOCOL?Variable not set}:5552" # RabbitMQ Stream Protocol
+      - "${RABBITMQ_PORT_AMQP?Variable not set}:5672" # AMQP
+      - "${RABBITMQ_PORT_MANAGEMENT_UI?Variable not set}:15672" # Management UI
+      - "${RABBITMQ_PORT_PROMETHEUS?Variable not set}:15692" # Prometheus Metrics
+    environment:
+      - TZ=UTC
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER?Variable not set}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS?Variable not set}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - ./data/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+
+volumes:
+  rabbitmq_data:
+
+networks:
+  app-network:
