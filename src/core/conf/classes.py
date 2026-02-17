@@ -1,6 +1,7 @@
 import enum
+from dataclasses import dataclass
 from pathlib import Path
-from typing import ClassVar, Literal, Self
+from typing import TYPE_CHECKING, ClassVar, Literal, Self
 from zoneinfo import ZoneInfo
 
 from pydantic import AliasPath, BaseModel, Field, computed_field
@@ -10,6 +11,10 @@ from pydantic_settings import (
     SettingsConfigDict,
     TomlConfigSettingsSource,
 )
+
+if TYPE_CHECKING:
+    from aio_pika import ExchangeType
+    from pamqp.common import FieldValue
 
 type LogLevel = Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
 
@@ -179,3 +184,35 @@ class DatabaseSettings(BaseSettingsConfig):
                 db_dir.mkdir(parents=True, exist_ok=True)
 
         return cls._instance
+
+
+class RabbitMQSettings(BaseSettingsConfig):
+    """RabbitMQ settings."""
+
+    url: str = Field(alias="RABBITMQ__URL")
+    connection_ttl: int = Field(
+        default=60,
+        validation_alias=AliasPath("rabbitmq", "connection_ttl"),
+    )
+
+
+@dataclass(frozen=True, slots=True)
+class ExcangeConfig:
+    """Exchange config."""
+
+    name: str
+    type: ExchangeType
+    durable: bool
+
+
+@dataclass(frozen=True, slots=True)
+class QueueConfig:
+    """Queue config."""
+
+    name: str
+    exchange_name: str
+    routing_key: str
+    message_ttl: int
+    durable: bool
+    arguments: dict[str, FieldValue]
+    timeout: int
