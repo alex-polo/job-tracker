@@ -1,4 +1,5 @@
 import hashlib
+import json
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
@@ -50,6 +51,23 @@ class VacancyEntity:
             self.description,
         ])
         return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+    def to_json(self) -> bytes:
+        """Returns a JSON-compatible representation of the VacancyEntity.
+
+        Returns:
+            bytes: JSON-encoded string.
+        """
+        return json.dumps({
+            "title": self.title,
+            "company": self.company,
+            "salary": self.salary,
+            "experience": self.experience,
+            "description": self.description,
+            "link": self.link,
+            "location": self.location,
+            "date": self.date,
+        }).encode("utf-8")
 
 
 @dataclass(slots=True)
