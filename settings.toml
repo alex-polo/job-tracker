@@ -1,6 +1,8 @@
 [scheduler]
 time_zone = "Europe/Moscow"
 
+[rabbitmq]
+connection_ttl = 60
 
 [database]
 database_path = "data/db.sqlite"
