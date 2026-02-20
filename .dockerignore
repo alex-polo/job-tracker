@@ -1,3 +1,5 @@
+settings.toml
+.env.dist
 .venv
 .git
 logs
@@ -14,7 +16,7 @@ __pycache__
 # Environment variables
 .env
 .env.*
-!.env.example
+!.env.dist
 
 # Database files
 *.db
