@@ -18,6 +18,50 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
       - ./data/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+    networks:
+      - app-network
+
+  observer:
+    image: job-tracker:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: observer
+    restart: unless-stopped
+    command: ["run_observer"]
+    environment:
+      - RABBITMQ__URL=${RABBITMQ__URL?Variable not set}
+      - RUN_MIGRATIONS=true
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./settings.toml:/app/settings.toml:ro
+    networks:
+      - app-network
+    depends_on:
+      - rabbitmq
+
+  tg_bot:
+    image: job-tracker:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tg_bot
+    restart: unless-stopped
+    command: ["run_bot"]
+    environment:
+      - RABBITMQ__URL=${RABBITMQ__URL?Variable not set}
+      - TG_BOT__TOKEN=${TG_BOT__TOKEN?Variable not set}
+      - TG_BOT__USER_IDS=${TG_BOT__USER_IDS?Variable not set}
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./settings.toml:/app/settings.toml:ro
+    networks:
+      - app-network
+    depends_on:
+      - rabbitmq
+      - observer
 
 volumes:
   rabbitmq_data:
