@@ -44,21 +44,6 @@ class MQPublisher(IMessageSender, RabbitMQClient):
         self.publisher_settings = publisher_settings
         self.exchanges_map: dict[str, AbstractExchange] = {}
 
-        # self.exchange_name = "job_tracker"
-        # self.queue_name = "vacancies"
-        # self.routing_key = "vacancies"
-        # self.queue_message_ttl = int(
-        #     timedelta(minutes=10).total_seconds() * 1000
-        # )
-        # self.queue_ttl = int(timedelta(seconds=15).total_seconds())
-
-        # self.dlx_exchange_name = "dlx_job_tracker"
-        # self.dl_queue_name = "dl_vacancies"
-        # self.dl_routing_key = "failed.vacancies"
-        # self.dl_queue_message_ttl = int(
-        #     timedelta(days=2).total_seconds() * 1000
-        # )
-
     async def _initialize(self) -> None:
         """Initialize RabbitMQ infrastructure."""
         log.debug("Setting up RabbitMQ infrastructure...")
@@ -76,16 +61,6 @@ class MQPublisher(IMessageSender, RabbitMQClient):
                 exchange_type=exchange_config.type,
             )
 
-        # self.dlx_exchange = await self._declare_direct_exchanges(
-        #     channel=self.channel,
-        #     exchange_name=self.dlx_exchange_name,
-        # )
-
-        # self.exchange = await self._declare_direct_exchanges(
-        #     channel=self.channel,
-        #     exchange_name=self.exchange_name,
-        # )
-
         for queue_config in self.publisher_settings.topology.queues:
             await self._declare_queue(
                 queue_name=queue_config.name,
@@ -96,29 +71,6 @@ class MQPublisher(IMessageSender, RabbitMQClient):
                 arguments=queue_config.arguments,
             )
 
-        # await self._declare_queue(
-        #     queue_name=self.dl_queue_name,
-        #     exchange_name=self.dlx_exchange_name,
-        #     routing_key=self.dl_routing_key,
-        #     channel=self.channel,
-        #     queue_timeout=self.queue_ttl,
-        #     arguments={
-        #         "x-message-ttl": self.dl_queue_message_ttl,
-        #     },
-        # )
-
-        # await self._declare_queue(
-        #     queue_name=self.queue_name,
-        #     exchange_name=self.exchange_name,
-        #     routing_key=self.routing_key,
-        #     channel=self.channel,
-        #     queue_timeout=self.queue_ttl,
-        #     arguments={
-        #         "x-message-ttl": self.queue_message_ttl,
-        #         "x-dead-letter-exchange": self.dlx_exchange_name,
-        #         "x-dead-letter-routing-key": self.dl_routing_key,
-        #     },
-        # )
         log.debug("RabbitMQ connection setup complete")
 
     async def publish_vacancy(self, vacancy: VacancyEntity) -> bool:
