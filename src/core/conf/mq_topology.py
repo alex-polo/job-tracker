@@ -66,8 +66,9 @@ class RabbitMQPublisherConfig:
 class RabbitMQConsumerConfig:
     """Consumer config."""
 
-    vacancy_exchange_name: str = "job_tracker"
-    vacancy_routing_key: str = "vacancies"
+    perf_counter = ""
+
+    vacancy_queue: QueueConfig = queue_config
 
 
 __all__ = (

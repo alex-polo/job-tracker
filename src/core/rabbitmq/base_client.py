@@ -84,7 +84,7 @@ class RabbitMQClient(ABC):
         routing_key: str,
         queue_timeout: int,
         arguments: dict[str, FieldValue],
-    ) -> None:
+    ) -> AbstractQueue:
         """Declare queues."""
         log.debug(
             "Declaring queue: %s (timeout=%ss)",
@@ -106,6 +106,7 @@ class RabbitMQClient(ABC):
                 "Queue declared: %s",
                 queue_name,
             )
+            return queue
 
         except TimeoutError as e:
             log.error("Queue declaration timeout: %s", e)
