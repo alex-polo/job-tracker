@@ -19,7 +19,7 @@ directory = "logs"
 log_file = "observer.log"
 
 [[sources]]
-url = "https://hh.ru/search/vacancy?text=python+fastapi&area=1&enable_snippets=true&items_on_page=50&order_by=publication_time"
+url = "https://hh.ru/search/vacancy?text=python&area=1&enable_snippets=true&items_on_page=50&order_by=publication_time"
 source_type = "HH"
 period_minutes=5
 
