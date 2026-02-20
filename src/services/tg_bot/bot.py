@@ -64,6 +64,9 @@ async def main(
         consumer_config: Consumer configuration including queue settings.
 
     """
+    log.info("Waiting 60s for RabbitMQ topology to be ready...")
+    await asyncio.sleep(60)
+
     log.info("Initializing dispatcher and bot...")
     dp = Dispatcher()
     bot = Bot(token=tg_bot_config.token)
