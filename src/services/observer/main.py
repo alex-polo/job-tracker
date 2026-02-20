@@ -23,7 +23,14 @@ log = logging.getLogger(__name__)
 
 
 def make_polling_task(mq_publisher: MQPublisher) -> ISchedulerTask:
-    """Create polling ISchedulerTask instance."""
+    """Create a polling task instance.
+
+    Args:
+        mq_publisher: The RabbitMQ publisher instance.
+
+    Returns:
+        A configured PollingTask instance.
+    """
     return PollingTask(
         loader=HeadHunterLoader(),
         repository=VacancyRepository(),
@@ -36,7 +43,16 @@ async def main(
     rabbitmq_settings: RabbitMQSettings,
     publisher_settings: RabbitMQPublisherConfig,
 ) -> None:
-    """Main function."""
+    """Run the main observer loop.
+
+    Initializes the RabbitMQ publisher, configures the scheduler with jobs
+    for each source, and starts polling. Gracefully shuts down on interruption.
+
+    Args:
+        settings: Observer configuration settings.
+        rabbitmq_settings: RabbitMQ connection settings.
+        publisher_settings: RabbitMQ publisher topology configuration.
+    """
     async with MQPublisher(
         rabbitmq_settings=rabbitmq_settings,
         publisher_settings=publisher_settings,
@@ -76,8 +92,16 @@ def run_observer(
     rabbitmq_settings: RabbitMQSettings,
     publisher_settings: RabbitMQPublisherConfig,
 ) -> None:
-    """Run observer."""
-    log.info("Start observer")
+    """Entry point for running the observer.
+
+    Initializes and runs the observer service using asyncio.
+
+    Args:
+        settings: Observer configuration settings.
+        rabbitmq_settings: RabbitMQ connection settings.
+        publisher_settings: RabbitMQ publisher topology configuration.
+    """
+    log.info("Start observer ...")
     asyncio.run(
         main(
             settings=settings,
