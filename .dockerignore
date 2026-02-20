@@ -1,0 +1,52 @@
+.venv
+.git
+logs
+data
+__pycache__
+*.pyc
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.cache
+.vscode
+.idea
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Build artifacts
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+
+# mypy
+.dmypy.json
+mypy_cache/
+
+# uv
+uv.lock.bak
+
+# Temporary files
+*.tmp
+*.bak
