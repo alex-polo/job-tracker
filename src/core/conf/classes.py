@@ -75,7 +75,7 @@ class ProjectSettings(BaseModel):
     description: str = "unknown"
 
 
-class ObserverSchedulerSettings(BaseModel):
+class ScrapperSchedulerSettings(BaseModel):
     """Application settings."""
 
     time_zone: ZoneInfo = ZoneInfo("UTC")
@@ -89,15 +89,30 @@ class SourceSettings(BaseModel):
     period_minutes: int
 
 
-class ObserverSettings(BaseSettingsConfig):
+class HttpxSettings(BaseModel):
+    """HTTPX settings."""
+
+    timeout: float = 30.0
+    follow_redirects: bool = True
+    user_agent: str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"  # noqa: E501
+    max_connections: int = 10
+    max_keepalive_connections: int = 5
+    verify: bool = True
+    http2: bool = False
+
+
+class ScrapperSettings(BaseSettingsConfig):
     """Application settings."""
 
     project: ProjectSettings
-    scheduler: ObserverSchedulerSettings
+    scheduler: ScrapperSchedulerSettings
     sources: list[SourceSettings]
+    httpx_settings: HttpxSettings = Field(
+        validation_alias=AliasPath("scrapper", "httpx_settings")
+    )
 
     logging: LoggingSettings = Field(
-        validation_alias=AliasPath("observer", "logging")
+        validation_alias=AliasPath("scrapper", "logging")
     )
 
 

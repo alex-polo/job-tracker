@@ -11,15 +11,25 @@ echo_pool = false
 autoflush = false
 expire_on_commit = false
 
-[observer.logging]
+[scrapper.logging]
 log_level = "ERROR"
 log_format = "%(asctime)s %(levelname)6s %(name)s: %(message)s"
 log_date_format = "%Y-%m-%d %H:%M:%S"
 directory = "logs"
 log_file = "observer.log"
 
+[scrapper.httpx_settings]
+timeout = 30.0
+follow_redirects = true
+user_agent = "Mozilla/5.0 ..."
+max_connections = 10
+max_keepalive_connections = 5
+verify = true
+http2 = false
+
 [[sources]]
-url = "https://hh.ru/search/vacancy?text=python&area=1&enable_snippets=true&items_on_page=50&order_by=publication_time"
+# url = "https://hh.ru/search/vacancy?text=python&area=1&enable_snippets=true&items_on_page=50&order_by=publication_time"
+url = "https://smolensk.hh.ru/search/vacancy?text=FastAPI&salary=&ored_clusters=true&order_by=publication_time&enable_snippets=true&suggestId=6a9667aa-e61e-413b-8e4e-cc671e0f7419&hhtmFrom=vacancy_search_list&hhtmFromLabel=vacancy_search_line"
 source_type = "HH"
 period_minutes=5
 
