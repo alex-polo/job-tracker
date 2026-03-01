@@ -44,16 +44,40 @@ class PollingTask(ISchedulerTask):
         Args:
             url: The URL to fetch vacancies from API.
         """
-        html_data: str = await self._loader.load(url=url)
-        vacancies_list: VacanciesList = self._parser.parse(html_data)
-        for vacancy in vacancies_list:
-            if not await self._repository.exists(vacancy_hash=vacancy.hash):
-                if await self.mq_publisher.send_message(vacancy=vacancy):
-                    await self._repository.save(vacancy_hash=vacancy.hash)
-                else:
-                    log.error(
-                        "Failed to send vacancy to RabbitMQ: %s", vacancy
+        log.info("Polling task started for URL: %s", url)
+        try:
+            log.debug("Loading HTML data from source")
+            html_data: str = await self._loader.load(url=url)
+            log.debug("HTML data loaded, size: %d bytes", len(html_data))
+
+            log.debug("Parsing vacancies from HTML")
+            vacancies_list: VacanciesList = self._parser.parse(html_data)
+            log.info("Parsed %d vacancies from source", len(vacancies_list))
+
+            for vacancy in vacancies_list:
+                if not await self._repository.exists(
+                    vacancy_hash=vacancy.hash
+                ):
+                    log.debug(
+                        "Processing new vacancy: %s at %s",
+                        vacancy.title,
+                        vacancy.link,
                     )
-                log.debug("Vacancy saved: %s", vacancy.hash)
-            else:
-                log.debug("Vacancy already exists: %s", vacancy.hash)
+                    if await self.mq_publisher.send_message(vacancy=vacancy):
+                        await self._repository.save(vacancy_hash=vacancy.hash)
+                        log.debug(
+                            "Vacancy saved and published: %s", vacancy.hash
+                        )
+                    else:
+                        log.error(
+                            "Failed to send vacancy to RabbitMQ: %s", vacancy
+                        )
+                else:
+                    log.debug("Vacancy already exists: %s", vacancy.hash)
+
+            log.info(
+                "Polling task completed: %d new, %d duplicates, %d failed"
+            )
+        except Exception as e:
+            log.exception("Error occurred during polling: %s", e)
+            raise
