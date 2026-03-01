@@ -12,11 +12,11 @@ autoflush = false
 expire_on_commit = false
 
 [scrapper.logging]
-log_level = "ERROR"
+log_level = "INFO"
 log_format = "%(asctime)s %(levelname)6s %(name)s: %(message)s"
 log_date_format = "%Y-%m-%d %H:%M:%S"
 directory = "logs"
-log_file = "observer.log"
+log_file = "scrapper.log"
 
 [scrapper.httpx_settings]
 timeout = 30.0
