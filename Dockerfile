@@ -74,33 +74,8 @@ ENV PATH="/app/.venv/bin:$PATH"
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked
 
-
-# Install Playwright browser (must be done as root before switching to nonroot)
-#RUN apt-get update && apt-get install -y --no-install-recommends \
-RUN apt-get update && apt-get install -y \
-    libglib2.0-0 \
-    libnss3 \
-    libnspr4 \
-    libatk1.0-0 \
-    libatk-bridge2.0-0 \
-    libcups2 \
-    libdrm2 \
-    libdbus-1-3 \
-    libxkbcommon0 \
-    libxcomposite1 \
-    libxdamage1 \
-    libxfixes3 \
-    libxrandr2 \
-    libgbm1 \
-    libasound2 \
-    libpango-1.0-0 \
-    libcairo2 \
-    && rm -rf /var/lib/apt/lists/*
-
 # Switch to nonroot user
 USER nonroot
-
-RUN playwright install chromium
 
 # Prestart script
 RUN chmod +x ./scripts/prestart.sh
