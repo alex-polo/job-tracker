@@ -128,13 +128,13 @@ class RabbitMQClient(ABC):
                 url=self.url,
                 timeout=self.connection_ttl,
             )
-            log.debug("Connected to RabbitMQ")
+            log.info("Connected to RabbitMQ")
 
             log.debug("Opening channel...")
             self.channel = await self.connection.channel(  # type: ignore
                 publisher_confirms=self.publisher_confirms,
             )
-            log.debug("Channel opened")
+            log.info("Channel opened")
 
         except TimeoutError as e:
             log.error("Connection timeout: %s", e)
