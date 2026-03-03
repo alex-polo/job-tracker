@@ -26,7 +26,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: observer
+    container_name: scrapper
     restart: unless-stopped
     command: ["run_scrapper"]
     environment:
@@ -61,7 +61,7 @@ services:
       - app-network
     depends_on:
       - rabbitmq
-      - observer
+      - scrapper
 
 volumes:
   rabbitmq_data:
