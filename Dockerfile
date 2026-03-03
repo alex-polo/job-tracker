@@ -70,7 +70,6 @@ COPY --from=builder --chown=nonroot:nonroot /app /app
 # Place executables in the environment at the front of the path
 ENV PATH="/app/.venv/bin:$PATH"
 
-# Install dependencies (Playwright dependencies already included in the base image)
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked
 

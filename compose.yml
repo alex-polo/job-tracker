@@ -22,11 +22,14 @@ services:
       - app-network
 
   scrapper:
-    image: job-tracker:latest
+    image: job-tracker:${VERSION:-latest}
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: scrapper
+      tags:
+        - job-tracker:${VERSION:-latest}
+      #  - job-tracker:latest
+    container_name: scrapper_${VERSION:-latest}
     restart: unless-stopped
     command: ["run_scrapper"]
     environment:
@@ -42,11 +45,14 @@ services:
       - rabbitmq
 
   tg_bot:
-    image: job-tracker:latest
+    image: job-tracker:${VERSION:-latest}
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: tg_bot
+      tags:
+        - job-tracker:${VERSION:-latest}
+      #  - job-tracker:latest
+    container_name: tg_bot_${VERSION:-latest}
     restart: unless-stopped
     command: ["run_bot"]
     environment:
