@@ -12,6 +12,7 @@ __pycache__
 .cache
 .vscode
 .idea
+_Dockerfile
 
 # Environment variables
 .env
