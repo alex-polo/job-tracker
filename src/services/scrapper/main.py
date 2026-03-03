@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Final
 
 from src.core.conf.classes import HttpxSettings, RabbitMQSettings, SourceType
 from src.core.database import DB_MANAGER
@@ -21,6 +21,8 @@ if TYPE_CHECKING:
     from .tasks import ISchedulerTask
 
 log = logging.getLogger(__name__)
+
+OFFSET_SECONDS: Final[int] = 5
 
 
 def make_polling_task(
@@ -64,7 +66,7 @@ async def main(
     ) as mq_publisher:
         scheduler = ParseScheduler(settings=settings.scheduler)
 
-        for source in settings.sources:
+        for idx, source in enumerate(settings.sources):
             log.debug(
                 "Adding job for source: %s, url: %s",
                 source.source_type,
@@ -72,13 +74,15 @@ async def main(
             )
             if source.source_type == SourceType.HH:
                 scheduler.add_job(
-                    job_id=str(source.source_type),
+                    job_id=f"{source.source_type.value}_{source.url}",
                     func=make_polling_task(
                         mq_publisher=mq_publisher,
                         loader_settings=settings.httpx_settings,
                     ).run,
                     interval_minutes=source.period_minutes,
                     task_args=(source.url,),
+                    stagger_first_run=True,  # Распределяем первый запуск
+                    offset_seconds=idx * OFFSET_SECONDS,
                 )
                 log.debug("Added job for source: %s", source.source_type)
 

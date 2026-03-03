@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
 from apscheduler import events
@@ -69,17 +69,30 @@ class ParseScheduler:
         func: Callable,
         interval_minutes: int,
         task_args: tuple | None,
+        stagger_first_run: bool = True,
+        offset_seconds: int = 0,
     ) -> None:
-        """Schedule a periodic task with immediate first execution.
+        """Schedule a periodic task with configurable first run time.
 
-        Task runs immediately after scheduler.start(), then every N minutes.
+        First run: `datetime.now() + offset_seconds` (plus optional random
+        stagger). Subsequent runs: every `interval_minutes`.
         Duplicate job_ids are replaced (replace_existing=True).
 
+        Behavior:
+            - max_instances=1: concurrent runs are blocked; next run waits.
+            - coalesce=True: missed runs (misfire) are merged into one
+              execution.
+            - misfire_grace_time=60s: missed runs older than 60s are skipped.
+
         Args:
-            job_id (str): Unique identifier for the job (must be string).
-            func (Callable): Async or sync callable to execute periodically.
-            interval_minutes (int): Interval between executions in minutes.
-            task_args (tuple): Positional arguments passed to func on each run.
+            job_id: Unique identifier for the job (must be string).
+            func: Async or sync callable to execute periodically.
+            interval_minutes: Interval between executions in minutes.
+            task_args: Positional arguments passed to func on each run.
+            stagger_first_run: If True, adds random delay (0-30% of interval)
+                to first run to avoid simultaneous execution of multiple jobs.
+            offset_seconds: Additional fixed delay in seconds for first run.
+                Useful for staggering multiple jobs of the same type.
         """
         self.scheduler.add_job(
             id=job_id,
@@ -90,7 +103,8 @@ class ParseScheduler:
             misfire_grace_time=60,
             coalesce=True,
             max_instances=1,
-            next_run_time=datetime.now(),
+            stagger_first_run=stagger_first_run,
+            next_run_time=datetime.now() + timedelta(seconds=offset_seconds),
         )
         log.info(f"Add task '{job_id}': every {interval_minutes} minutes")
 
