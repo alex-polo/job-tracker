@@ -46,11 +46,11 @@ class PollingTask(ISchedulerTask):
         """
         log.info("Polling task started for URL: %s", url)
         try:
-            log.debug("Loading HTML data from source")
+            log.info("Loading HTML data from source")
             html_data: str = await self._loader.load(url=url)
-            log.debug("HTML data loaded, size: %d bytes", len(html_data))
+            log.info("HTML data loaded, size: %d bytes", len(html_data))
 
-            log.debug("Parsing vacancies from HTML")
+            log.info("Parsing vacancies from HTML")
             vacancies_list: VacanciesList = self._parser.parse(html_data)
             log.info("Parsed %d vacancies from source", len(vacancies_list))
 
@@ -58,14 +58,14 @@ class PollingTask(ISchedulerTask):
                 if not await self._repository.exists(
                     vacancy_hash=vacancy.hash
                 ):
-                    log.debug(
+                    log.info(
                         "Processing new vacancy: %s at %s",
                         vacancy.title,
                         vacancy.link,
                     )
                     if await self.mq_publisher.send_message(vacancy=vacancy):
                         await self._repository.save(vacancy_hash=vacancy.hash)
-                        log.debug(
+                        log.info(
                             "Vacancy saved and published: %s", vacancy.hash
                         )
                     else:
@@ -73,11 +73,8 @@ class PollingTask(ISchedulerTask):
                             "Failed to send vacancy to RabbitMQ: %s", vacancy
                         )
                 else:
-                    log.debug("Vacancy already exists: %s", vacancy.hash)
+                    log.info("Vacancy already exists: %s", vacancy.hash)
 
-            log.info(
-                "Polling task completed: %d new, %d duplicates, %d failed"
-            )
         except Exception as e:
             log.exception("Error occurred during polling: %s", e)
             raise
