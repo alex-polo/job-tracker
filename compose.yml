@@ -1,5 +1,12 @@
 name: job-tracker
 
+x-logging: &default-logging
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "10m"
+      max-file: "3"
+
 services:
   rabbitmq:
     image: "rabbitmq:4.2.0-management-alpine"
@@ -20,16 +27,20 @@ services:
       - ./data/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
     networks:
       - app-network
+    <<: *default-logging
 
   scrapper:
-    image: job-tracker:${VERSION:-latest}
+    image: job-tracker:${TAG:-latest}
     build:
       context: .
       dockerfile: Dockerfile
       tags:
-        - job-tracker:${VERSION:-latest}
-      #  - job-tracker:latest
-    container_name: scrapper_${VERSION:-latest}
+        - job-tracker:latest
+        - job-tracker:${TAG:-latest}
+    container_name: scrapper_${TAG:-latest}
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     restart: unless-stopped
     command: ["run_scrapper"]
     environment:
@@ -43,16 +54,17 @@ services:
       - app-network
     depends_on:
       - rabbitmq
+    <<: *default-logging
 
   tg_bot:
-    image: job-tracker:${VERSION:-latest}
+    image: job-tracker:${TAG:-latest}
     build:
       context: .
       dockerfile: Dockerfile
       tags:
-        - job-tracker:${VERSION:-latest}
-      #  - job-tracker:latest
-    container_name: tg_bot_${VERSION:-latest}
+        - job-tracker:latest
+        - job-tracker:${TAG:-latest}
+    container_name: tg_bot_${TAG:-latest}
     restart: unless-stopped
     command: ["run_bot"]
     environment:
@@ -68,9 +80,13 @@ services:
     depends_on:
       - rabbitmq
       - scrapper
+    <<: *default-logging
 
 volumes:
   rabbitmq_data:
 
 networks:
   app-network:
+    driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: 1400
