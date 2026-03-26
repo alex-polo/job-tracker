@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-import re
 from datetime import datetime
 
 from bs4 import BeautifulSoup, Tag
@@ -42,29 +41,35 @@ class HeadHunterParser(IParser):
                     class_="bloko-header-section-2",
                 )
                 url_tag: Tag = get_tag(title_tag, "a")
-                company_tag: Tag = get_tag(
-                    item,
-                    "span",
-                    class_="magritte-text___tkzIl_7-1-4",
-                )
-                description_tag = get_tag(
-                    item,
-                    "div",
-                    class_="g-user-content description--Do6gp8OKxwYiiHST",
-                )
 
                 title: str = get_text(title_tag)
                 url: str = get_href_attr(url_tag, "href")
-                description = get_text(description_tag)
 
-                company_tag_qa = item.find(
+                company_tag = item.find(
                     "span",
                     attrs={"data-qa": "vacancy-serp__vacancy-employer-text"},
                 )
-                company: str = (
-                    get_text(company_tag_qa)
-                    if company_tag_qa
-                    else get_text(company_tag)
+                company: str = get_text(company_tag) if company_tag else ""
+
+                responsibility_tag = item.find(
+                    "div",
+                    attrs={
+                        "data-qa": "vacancy-serp__vacancy_snippet_responsibility"
+                    },
+                )
+                requirement_tag = item.find(
+                    "div",
+                    attrs={
+                        "data-qa": "vacancy-serp__vacancy_snippet_requirement"
+                    },
+                )
+                description_parts = []
+                if responsibility_tag:
+                    description_parts.append(get_text(responsibility_tag))
+                if requirement_tag:
+                    description_parts.append(get_text(requirement_tag))
+                description: str = (
+                    "\n\n".join(description_parts) if description_parts else ""
                 )
 
                 experience_tag = item.find(
@@ -85,11 +90,8 @@ class HeadHunterParser(IParser):
 
                 salary_tag = item.find(
                     "span",
-                    class_=re.compile(
-                        r"magritte-text_typography-label-1-regular"
-                    ),
+                    attrs={"data-qa": "vacancy-serp__vacancy-salary"},
                 )
-
                 salary: str = (
                     get_text(salary_tag) if salary_tag else "Не указано"  # noqa: RUF001
                 )
