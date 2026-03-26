@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import logging
 from typing import TYPE_CHECKING
 
@@ -58,6 +56,8 @@ class PollingTask(ISchedulerTask):
                 if not await self._repository.exists(
                     vacancy_hash=vacancy.hash
                 ):
+                    print(vacancy)
+                    print("*" * 100)
                     log.info(
                         "Processing new vacancy: %s at %s",
                         vacancy.title,
