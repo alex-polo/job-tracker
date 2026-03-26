@@ -1,8 +1,11 @@
-from typing import ClassVar
+from typing import ClassVar, Final
 
 from aio_pika import ExchangeType
 
 from .classes import ExcangeConfig, QueueConfig
+
+DLX_MESSGAE_TTL: Final[int] = 7 * 24 * 60 * 60 * 1000  # 7 days
+MESSAGE_TTL: Final[int] = 60 * 60 * 1000  # 1 hour
 
 dlx_exchange_config = ExcangeConfig(
     name="dlx_job_tracker",
@@ -19,10 +22,10 @@ queue_config = QueueConfig(
     name="vacancies",
     exchange_name="job_tracker",
     routing_key="vacancies",
-    message_ttl=600_000,
+    message_ttl=MESSAGE_TTL,
     durable=True,
     arguments={
-        "x-message-ttl": 600_000,
+        "x-message-ttl": MESSAGE_TTL,
         "x-dead-letter-exchange": "dlx_job_tracker",
         "x-dead-letter-routing-key": "failed.vacancies",
     },
@@ -32,10 +35,10 @@ dl_queue_config = QueueConfig(
     name="dl_vacancies",
     exchange_name="dlx_job_tracker",
     routing_key="failed.vacancies",
-    message_ttl=172_800_000,
+    message_ttl=DLX_MESSGAE_TTL,
     durable=True,
     arguments={
-        "x-message-ttl": 172_800_000,
+        "x-message-ttl": DLX_MESSGAE_TTL,
     },
     timeout=15,
 )
