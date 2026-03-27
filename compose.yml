@@ -41,10 +41,13 @@ services:
     dns:
       - 8.8.8.8
       - 1.1.1.1
+    extra_hosts:
+      - "glitchtip.local:host-gateway"
     restart: unless-stopped
     command: ["run_scrapper"]
     environment:
       - RABBITMQ__URL=${RABBITMQ__URL?Variable not set}
+      - ENVIRONMENT=${ENVIRONMENT?Variable not set}
       - RUN_MIGRATIONS=true
     volumes:
       - ./data:/app/data
@@ -67,10 +70,13 @@ services:
     dns:
       - 8.8.8.8
       - 1.1.1.1
+    extra_hosts:
+      - "glitchtip.local:host-gateway"
     restart: unless-stopped
     command: ["run_bot"]
     environment:
       - RABBITMQ__URL=${RABBITMQ__URL?Variable not set}
+      - TG_BOT__ENVIRONMENT=${ENVIRONMENT?Variable not set}
       - TG_BOT__TOKEN=${TG_BOT__TOKEN?Variable not set}
       - TG_BOT__USER_IDS=${TG_BOT__USER_IDS?Variable not set}
     volumes:
