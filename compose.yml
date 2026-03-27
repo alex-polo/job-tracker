@@ -48,7 +48,6 @@ services:
       - RUN_MIGRATIONS=true
     volumes:
       - ./data:/app/data
-      - ./logs:/app/logs
       - ./settings.toml:/app/settings.toml:ro
     networks:
       - app-network
@@ -76,7 +75,6 @@ services:
       - TG_BOT__USER_IDS=${TG_BOT__USER_IDS?Variable not set}
     volumes:
       - ./data:/app/data
-      - ./logs:/app/logs
       - ./settings.toml:/app/settings.toml:ro
     networks:
       - app-network
