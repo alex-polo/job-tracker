@@ -7,11 +7,12 @@ if TYPE_CHECKING:
     from collections.abc import Iterator
 
 
-@dataclass(slots=True, frozen=True)
+@dataclass(slots=True)
 class VacancyEntity:
     """A data transfer object representing a single vacancy.
 
     Attributes:
+        tag (str | None): The source tag.
         title (str): The job title.
         company (str): The name of the employer.
         salary (str): Salary range or specific amount.
@@ -31,6 +32,7 @@ class VacancyEntity:
     location: str
     date: str
     raw_data: str
+    tag: str | None = None
 
     @property
     def hash(self) -> str:
@@ -60,6 +62,7 @@ class VacancyEntity:
             bytes: JSON-encoded string.
         """
         return json.dumps({
+            "tag": self.tag,
             "title": self.title,
             "company": self.company,
             "salary": self.salary,

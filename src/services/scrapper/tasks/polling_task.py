@@ -58,6 +58,7 @@ class PollingTask(ISchedulerTask):
                 if not await self._repository.exists(
                     vacancy_hash=vacancy.hash
                 ):
+                    vacancy.tag = self.job_tag
                     log.info(
                         "Processing new vacancy: %s at %s",
                         vacancy.title,
