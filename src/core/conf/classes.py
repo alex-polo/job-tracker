@@ -1,10 +1,9 @@
 import enum
 from dataclasses import dataclass
-from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar, Literal, Self
 from zoneinfo import ZoneInfo
 
-from pydantic import AliasPath, BaseModel, Field, computed_field
+from pydantic import AliasPath, BaseModel, Field, HttpUrl, computed_field
 from pydantic_settings import (
     BaseSettings,
     PydanticBaseSettingsSource,
@@ -13,6 +12,8 @@ from pydantic_settings import (
 )
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from aio_pika import ExchangeType
     from pamqp.common import FieldValue
 
@@ -30,12 +31,14 @@ class BaseSettingsConfig(BaseSettings):
     """Base settings."""
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=".env.local",
+        env_file_encoding="utf-8",
         env_nested_delimiter="__",
         toml_file=["pyproject.toml", "settings.toml"],
         case_sensitive=False,
         validate_default=True,
         extra="ignore",
+        frozen=True,
     )
 
     @classmethod
@@ -63,8 +66,9 @@ class LoggingSettings(BaseModel):
     log_level: LogLevel = "DEBUG"
     log_format: str = "%(asctime)s %(levelname)6s %(name)s: %(message)s"
     log_date_format: str = "%Y-%m-%d %H:%M:%S"
-    directory: Path = Path("logs")
-    log_file: str = "app.log"
+    sentry_dsn: HttpUrl | None = None
+    sentry_traces_sample_rate: float = 1.0
+    sentry_log_level: LogLevel = "INFO"
 
 
 class ProjectSettings(BaseModel):
@@ -105,6 +109,7 @@ class HttpxSettings(BaseModel):
 class ScrapperSettings(BaseSettingsConfig):
     """Application settings."""
 
+    ENVIRONMENT: str
     project: ProjectSettings
     scheduler: ScrapperSchedulerSettings
     sources: list[SourceSettings]
@@ -127,6 +132,7 @@ class TgBotConfig(BaseModel):
 class TgBotSettings(BaseSettingsConfig):
     """Telegram bot settings."""
 
+    ENVIRONMENT: str
     tg_bot: TgBotConfig
 
     logging: LoggingSettings = Field(
