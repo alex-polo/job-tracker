@@ -24,11 +24,14 @@ OFFSET_SECONDS: Final[int] = 5
 
 
 def make_polling_task(
-    mq_publisher: MQPublisher, loader_settings: HttpxSettings
+    job_tag: str,
+    mq_publisher: MQPublisher,
+    loader_settings: HttpxSettings,
 ) -> ISchedulerTask:
     """Create a polling task instance.
 
     Args:
+        job_tag: The job tag.
         mq_publisher: The RabbitMQ publisher instance.
         loader_settings: HTTPX settings.
 
@@ -36,6 +39,7 @@ def make_polling_task(
         A configured PollingTask instance.
     """
     return PollingTask(
+        job_tag=job_tag,
         loader=HttpxLoader(settings=loader_settings),
         parser=HeadHunterParser(),
         repository=VacancyRepository(),
@@ -74,6 +78,7 @@ async def main(
                 scheduler.add_job(
                     job_id=f"{source.source_type.value}_{source.url}",
                     func=make_polling_task(
+                        job_tag=source.tag,
                         mq_publisher=mq_publisher,
                         loader_settings=settings.httpx_settings,
                     ).run,

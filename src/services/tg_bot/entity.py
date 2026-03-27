@@ -59,6 +59,7 @@ class RecivedVacancyEntity(IReceivedConsumedMessage):
         date: Date when the vacancy was posted.
     """
 
+    tag: str
     title: str
     company: str
     salary: str
@@ -94,6 +95,7 @@ class RecivedVacancyEntity(IReceivedConsumedMessage):
             str: Formatted vacancy message ready for Telegram.
         """
         return (
+            f"#{self.tag}\n"
             f"<b>{self.title}</b>\n\n"
             f"Компания: {self.company}\n"
             f"З/П: {self.salary}\n"  # noqa: RUF001
@@ -121,6 +123,7 @@ class RecivedVacancyEntity(IReceivedConsumedMessage):
         log.debug("Parsed vacancy data: %s", data)
 
         title: str = data.get("title", "unoknown")
+        tag: str = data.get("tag", "unoknown")
         company: str = data.get("company", "unoknown")
         salary: str = data.get("salary", "unoknown")
         experience: str = data.get("experience", "unoknown")
@@ -130,6 +133,7 @@ class RecivedVacancyEntity(IReceivedConsumedMessage):
         date: str = data.get("date", "unoknown")
 
         entity = cls(
+            tag=tag,
             title=title,
             company=company,
             salary=salary,
@@ -146,6 +150,7 @@ class RecivedVacancyEntity(IReceivedConsumedMessage):
         """Return string representation of the entity."""
         return (
             f"RecivedVacancyEntity(title={self.title!r}, "
+            f"tag={self.tag!r}, "
             f"company={self.company!r}, "
             f"salary={self.salary!r}, "
             f"location={self.location!r}, "

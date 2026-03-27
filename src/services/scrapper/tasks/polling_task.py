@@ -22,6 +22,7 @@ class PollingTask(ISchedulerTask):
 
     def __init__(
         self,
+        job_tag: str,
         loader: ILoader,
         parser: IParser,
         repository: IRepository,
@@ -32,6 +33,7 @@ class PollingTask(ISchedulerTask):
         self._parser = parser
         self._repository = repository
         self.mq_publisher = mq_publisher
+        self.job_tag = job_tag
 
     async def run(self, url: str) -> None:
         """Execute the polling task.
