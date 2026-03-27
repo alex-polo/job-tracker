@@ -67,6 +67,7 @@ class LoggingSettings(BaseModel):
     log_format: str = "%(asctime)s %(levelname)6s %(name)s: %(message)s"
     log_date_format: str = "%Y-%m-%d %H:%M:%S"
     sentry_dsn: HttpUrl | None = None
+    sentry_environment: str = "local"
     sentry_traces_sample_rate: float = 1.0
     sentry_log_level: LogLevel = "INFO"
 

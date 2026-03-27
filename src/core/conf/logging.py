@@ -1,5 +1,9 @@
-from logging.config import dictConfig
-from typing import TYPE_CHECKING, Any
+import logging
+from typing import TYPE_CHECKING
+
+import sentry_sdk
+from sentry_sdk.integrations.fastapi import FastApiIntegration
+from sentry_sdk.integrations.logging import LoggingIntegration
 
 if TYPE_CHECKING:
     from .classes import LoggingSettings
@@ -7,37 +11,29 @@ if TYPE_CHECKING:
 
 def setup_logging(settings: LoggingSettings) -> None:
     """Setup logging."""
-    log_config: dict[str, Any] = {
-        "version": 1,
-        "disable_existing_loggers": False,
-        "formatters": {
-            "default": {
-                "format": settings.log_format,
-                "datefmt": settings.log_date_format,
-            },
-        },
-        "handlers": {
-            "console": {
-                "class": "logging.StreamHandler",
-                "formatter": "default",
-            },
-            "log_file": {
-                "class": "logging.FileHandler",
-                "formatter": "default",
-                "filename": settings.directory / settings.log_file,
-                "encoding": "utf-8",
-            },
-        },
-        "loggers": {
-            "": {
-                "handlers": ["log_file", "console"],
-                "level": settings.log_level,
-                "propagate": False,
-            },
-        },
-    }
+    if settings.sentry_dsn:
+        sentry_sdk.init(
+            dsn=str(settings.sentry_dsn),
+            environment=settings.sentry_environment,
+            traces_sample_rate=settings.sentry_traces_sample_rate,
+            enable_tracing=True,
+            integrations=[
+                FastApiIntegration(),
+                LoggingIntegration(
+                    level=logging.INFO,
+                    event_level=getattr(logging, settings.sentry_log_level),
+                ),
+            ],
+        )
 
-    if not settings.directory.exists():
-        settings.directory.mkdir(parents=True, exist_ok=True)
+    logging.basicConfig(
+        level=settings.log_level,
+        format=settings.log_format,
+        datefmt=settings.log_date_format,
+        force=True,
+    )
 
-    dictConfig(log_config)
+    for logger in logging.Logger.manager.loggerDict.values():
+        if isinstance(logger, logging.Logger):
+            logger.setLevel(settings.log_level)
+            logger.propagate = True
