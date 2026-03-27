@@ -1,5 +1,6 @@
 import enum
 from dataclasses import dataclass
+from pathlib import Path  # noqa: TC003
 from typing import TYPE_CHECKING, ClassVar, Literal, Self
 from zoneinfo import ZoneInfo
 
@@ -12,8 +13,6 @@ from pydantic_settings import (
 )
 
 if TYPE_CHECKING:
-    from pathlib import Path
-
     from aio_pika import ExchangeType
     from pamqp.common import FieldValue
 
@@ -128,12 +127,12 @@ class TgBotConfig(BaseModel):
 
     token: str
     user_ids: list[int]
+    environment: str
 
 
 class TgBotSettings(BaseSettingsConfig):
     """Telegram bot settings."""
 
-    ENVIRONMENT: str
     tg_bot: TgBotConfig
 
     logging: LoggingSettings = Field(
