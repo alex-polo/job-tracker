@@ -16,13 +16,16 @@ log = logging.getLogger(__name__)
 class PollingTask(ISchedulerTask):
     """A task for periodically polling the HH.ru API.
 
-    Loads vacancies from a specified URL, checks their existence in the db,
+    Loads vacancies from a specified URL, checks their existence in db,
     and publishes new vacancies to RabbitMQ.
     """
 
     def __init__(
         self,
-        job_tag: str,
+        url: str,
+        request_params: dict[str, str],
+        main_tag: str,
+        tags: list[str],
         loader: ILoader,
         parser: IParser,
         repository: IRepository,
@@ -32,10 +35,13 @@ class PollingTask(ISchedulerTask):
         self._loader = loader
         self._parser = parser
         self._repository = repository
-        self.mq_publisher = mq_publisher
-        self.job_tag = job_tag
+        self._mq_publisher = mq_publisher
+        self._url = url
+        self._main_tag = main_tag
+        self._tags = tags
+        self._request_params = request_params
 
-    async def run(self, url: str) -> None:
+    async def run(self) -> None:
         """Execute the polling task.
 
         Loads vacancies, checks if they exist in the repository,
@@ -44,27 +50,34 @@ class PollingTask(ISchedulerTask):
         Args:
             url: The URL to fetch vacancies from API.
         """
-        log.info("Polling task started for URL: %s", url)
+        log.info("Polling task started for URL: %s", self._url)
         try:
             log.info("Loading HTML data from source")
-            html_data: str = await self._loader.load(url=url)
-            log.info("HTML data loaded, size: %d bytes", len(html_data))
+            download_data: str = await self._loader.load(
+                url=self._url,
+                params=self._request_params,
+            )
+            log.info("Data loaded, size: %d bytes", len(download_data))
 
             log.info("Parsing vacancies from HTML")
-            vacancies_list: VacanciesList = self._parser.parse(html_data)
+            vacancies_list: VacanciesList = self._parser.parse(
+                data=download_data,
+            )
             log.info("Parsed %d vacancies from source", len(vacancies_list))
 
             for vacancy in vacancies_list:
                 if not await self._repository.exists(
                     vacancy_hash=vacancy.hash
                 ):
-                    vacancy.tag = self.job_tag
                     log.info(
                         "Processing new vacancy: %s at %s",
                         vacancy.title,
                         vacancy.link,
                     )
-                    if await self.mq_publisher.send_message(vacancy=vacancy):
+                    vacancy.main_tag = self._main_tag
+                    vacancy.tags = self._tags
+
+                    if await self._mq_publisher.send_message(vacancy=vacancy):
                         await self._repository.save(vacancy_hash=vacancy.hash)
                         log.info(
                             "Vacancy saved and published: %s", vacancy.hash
