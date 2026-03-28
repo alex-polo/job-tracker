@@ -6,9 +6,9 @@ if TYPE_CHECKING:
 
 
 class IParser(ABC):
-    """Interface for parsing HTML data into a list of VacancyEntity objects."""
+    """Interface for parsing HTML data."""
 
     @abstractmethod
-    def parse(self, html_data: str) -> VacanciesList:
+    def parse(self, data: str) -> VacanciesList:
         """Parse HTML data into a list of VacancyEntity objects."""
         ...

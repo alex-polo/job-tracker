@@ -1,13 +1,10 @@
+import json
 import logging
 from datetime import datetime
-
-from bs4 import BeautifulSoup, Tag
 
 from src.services.scrapper.entity import VacanciesList, VacancyEntity
 from src.services.scrapper.exceptions import ScrapperParsingError
 from src.services.scrapper.parsing.base import IParser
-
-from .bs_utils import get_href_attr, get_tag, get_text
 
 log = logging.getLogger(__name__)
 
@@ -15,104 +12,79 @@ log = logging.getLogger(__name__)
 class HeadHunterParser(IParser):
     """HH.ru vacancy search results parser."""
 
-    def parse(self, data: str) -> VacanciesList:
-        """Parse HH.ru vacancy search results.
-
-        Args:
-            data: HTML content from HH.ru vacancy search page.
-
-        Returns:
-            List of parsed vacancy data.
-        """
-        soup = BeautifulSoup(data, "html.parser")
-        vacancies_items = soup.find_all(
-            "div", {"data-qa": "vacancy-serp__vacancy"}
+    def del_highlighttext(self, data: str) -> str:
+        """Remove highlighttext from the data."""
+        new_data = data.replace(
+            "<highlighttext>",
+            "",
+        ).replace(
+            "</highlighttext>",
+            "",
         )
 
+        return new_data.strip()
+
+    def parse(self, data: str) -> VacanciesList:
+        """Parse HH.ru vacancy search results."""
         vacancies_list = VacanciesList()
+        json_data = json.loads(data)
 
-        for item in vacancies_items:
+        json_vacancies_list = json_data.get("items", None)
+
+        if not json_vacancies_list:
+            raise ScrapperParsingError("No vacancies found")
+
+        for json_item in json_vacancies_list:
             try:
-                title_tag: Tag = get_tag(
-                    item,
-                    tag_name="h2",
-                    class_="bloko-header-section-2",
-                )
-                url_tag: Tag = get_tag(title_tag, "a")
+                title: str = json_item.get("name")
+                company = json_item.get("employer", {}).get("name")
 
-                title: str = get_text(title_tag)
-                url: str = get_href_attr(url_tag, "href")
+                salary_raw = json_item.get("salary")
 
-                company_tag = item.find(
-                    "span",
-                    attrs={"data-qa": "vacancy-serp__vacancy-employer-text"},
-                )
-                company: str = get_text(company_tag) if company_tag else ""
+                if salary_raw:
+                    salary_from = salary_raw.get("from") or "N/A"
+                    salary_to = salary_raw.get("to") or "N/A"
 
-                responsibility_tag = item.find(
-                    "div",
-                    attrs={
-                        "data-qa": "vacancy-serp__vacancy_snippet_responsibility"
-                    },
-                )
-                requirement_tag = item.find(
-                    "div",
-                    attrs={
-                        "data-qa": "vacancy-serp__vacancy_snippet_requirement"
-                    },
-                )
-                description_parts = []
-                if responsibility_tag:
-                    description_parts.append(get_text(responsibility_tag))
-                if requirement_tag:
-                    description_parts.append(get_text(requirement_tag))
-                description: str = (
-                    "\n\n".join(description_parts) if description_parts else ""
-                )
+                    salary = f"{salary_from} - {salary_to}"
 
-                experience_tag = item.find(
-                    "span",
-                    attrs={
-                        "data-qa": lambda x: bool(x and "work-experience" in x)
-                    },
-                )
-                experience: str = (
-                    get_text(experience_tag) if experience_tag else ""
-                )
+                    if salary_raw.get("currency"):
+                        salary += f" {salary_raw.get('currency') or ''}"
 
-                location_tag = item.find(
-                    "span",
-                    attrs={"data-qa": "vacancy-serp__vacancy-address"},
-                )
-                location: str = get_text(location_tag) if location_tag else ""
+                else:
+                    salary = "Не указана"  # noqa: RUF001
 
-                salary_tag = item.find(
-                    "span",
-                    attrs={"data-qa": "vacancy-serp__vacancy-salary"},
-                )
-                salary: str = (
-                    get_text(salary_tag) if salary_tag else "Не указано"  # noqa: RUF001
-                )
+                experience = json_item.get("experience", {}).get("name")
+                description = ""
 
-                current_date: str = datetime.now().strftime("%d.%m.%Y %H:%M")
+                snippet = json_item.get("snippet", {})
+                if snippet.get("requirement"):
+                    description += f"{snippet.get('requirement')}\n"
+
+                if snippet.get("responsibility"):
+                    description += f"\n{snippet.get('responsibility')}\n"
+
+                link = json_item.get("alternate_url")
+                location = json_item.get("area", {}).get("name")
+
+                date_obj = datetime.fromisoformat(
+                    json_item.get("published_at")
+                )
+                date = date_obj.strftime("%d.%m.%Y %H:%M")
 
                 vacancies_list.append(
                     VacancyEntity(
-                        title=title,
-                        company=company,
+                        title=self.del_highlighttext(title),
+                        company=self.del_highlighttext(company),
                         salary=salary,
-                        experience=experience,
-                        description=description,
-                        link=url,
-                        location=location,
-                        date=current_date,
-                        raw_data=item.text,
+                        experience=self.del_highlighttext(experience),
+                        description=self.del_highlighttext(description),
+                        link=link,
+                        location=self.del_highlighttext(location),
+                        date=date,
+                        raw_data=json_item,
                     )
                 )
-
             except Exception as e:
-                log.error("Error parsing filed vacancy: %s", e)
-                log.debug("Vacancy data: %s", item)
                 raise ScrapperParsingError(
                     f"Error parsing vacancy: {e}"
                 ) from e

@@ -3,8 +3,6 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from bs4 import Tag
 
-# log = logging.getLogger(__name__)
-
 
 def get_tag(tag: Tag | None, tag_name: str, class_: str | None = None) -> Tag:
     """Find and return a tag by name and optional class.
@@ -47,7 +45,7 @@ def get_text(tag: Tag) -> str:
     Returns:
         Stripped text content.
     """
-    return tag.text.strip()
+    return str(tag.text).strip()
 
 
 def get_href_attr(tag: Tag, attr: str) -> str:
