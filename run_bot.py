@@ -1,6 +1,6 @@
 """Entry point for the Telegram bot service.
 
-This module initializes and runs the Telegram bot, which receives notifications
+This module initializes and runs the Telegram bot
 from RabbitMQ and forwards them to users.
 """
 
@@ -19,13 +19,13 @@ def main() -> None:
     """Initialize and run the Telegram bot service.
 
     Exceptions:
-        KeyboardInterrupt: Shuts down the service when interrupted by user.
+        KeyboardInterrupt: Shuts down when interrupted by user.
         Exception: Logs any unexpected exceptions with full stack trace.
     """
     try:
         log = logging.getLogger(__name__)
-        tg_bot_settings = TgBotSettings()  # type: ignore
-        rabbitmq_settings = RabbitMQSettings()  # type: ignore
+        tg_bot_settings = TgBotSettings()  # pyright: ignore[reportCallIssue]
+        rabbitmq_settings = RabbitMQSettings()  # pyright: ignore[reportCallIssue]
         consumer_config = RabbitMQConsumerConfig()
         setup_logging(settings=tg_bot_settings.logging)
 

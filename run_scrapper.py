@@ -15,16 +15,18 @@ def main() -> None:
     """Initialize and run the observer service.
 
     Exceptions:
-        KeyboardInterrupt: Shuts down the service when interrupted by user.
-        Exception: Logs any unexpected exceptions with full stack trace.
+        KeyboardInterrupt:
+            Shuts down the service when interrupted by user.
+        Exception:
+            Logs any unexpected exceptions with full stack trace.
     """
     try:
         log = logging.getLogger(__name__)
 
-        observer_settings = ScrapperSettings()  # type: ignore
+        observer_settings = ScrapperSettings()  # pyright: ignore[reportCallIssue]
 
         setup_logging(settings=observer_settings.logging)
-        rabbitmq_settings = RabbitMQSettings()  # type: ignore
+        rabbitmq_settings = RabbitMQSettings()  # pyright: ignore[reportCallIssue]
         publisher_settings = RabbitMQPublisherConfig()
 
         run_observer(
