@@ -96,7 +96,7 @@ class HeadHunterLoader(BasePlaywrightLoader):
                 await req_loc.inner_text() if await req_loc.count() > 0 else ""
             )
 
-            current_datetime = datetime.now().strftime("%d.%m.%Y %H:%M")
+            current_datetime = datetime.now().strftime("%d.%m.%Y %H:%M")  # noqa: DTZ005
 
             vacancies_list.append(
                 VacancyEntity(
@@ -108,7 +108,7 @@ class HeadHunterLoader(BasePlaywrightLoader):
                     link=link if link else "",
                     location=f"{location} (Metro: {metro})",
                     date=current_datetime,
-                    raw_data="",
+                    raw_data="",  # type: ignore
                 )
             )
 

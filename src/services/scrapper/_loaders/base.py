@@ -54,7 +54,7 @@ class BasePlaywrightLoader(ILoader):
 
         Returns:
             VacanciesList: The list of extracted vacancies.
-        """
+        """  # noqa: W505
         log.debug("Starting Playwright automation for URL: %s", url)
 
         async with async_playwright() as p:
