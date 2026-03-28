@@ -29,9 +29,12 @@ def run_bot(
     """Run the Telegram bot and start the RabbitMQ consumer.
 
     Args:
-        tg_bot_config: Telegram bot configuration including token and user IDs.
-        rabbitmq_settings: RabbitMQ connection settings (URL, TTL).
-        consumer_config: Consumer configuration including queue settings.
+        tg_bot_config:
+            Telegram bot configuration including token and user IDs.
+        rabbitmq_settings:
+            RabbitMQ connection settings (URL, TTL).
+        consumer_config:
+            Consumer configuration including queue settings.
     """
     log.info("Starting bot...")
     asyncio.run(
@@ -59,9 +62,12 @@ async def main(
     5. Starts polling for Telegram updates
 
     Args:
-        tg_bot_config: Telegram bot configuration including token and user IDs.
-        rabbitmq_settings: RabbitMQ connection settings (URL, TTL).
-        consumer_config: Consumer configuration including queue settings.
+        tg_bot_config:
+            Telegram bot configuration. including token and user IDs.
+        rabbitmq_settings:
+            RabbitMQ connection settings (URL, TTL).
+        consumer_config:
+            Consumer configuration including queue settings.
 
     """
     log.info("Waiting 60s for RabbitMQ topology to be ready...")

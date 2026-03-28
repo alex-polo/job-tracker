@@ -11,18 +11,18 @@ if TYPE_CHECKING:
 async def command_start_handler(message: Message) -> None:
     """Handle the /start command.
 
-    This handler is called when a user sends the /start command to the bot.
+    This handler is called when a user sends the /start command.
     It responds with a greeting message and the user's Telegram ID.
 
     Args:
-        message: The incoming message object containing user information.
+        message: The incoming message containing user information.
     """
     if not message.from_user:
-        response_text: str = "<b>Hello!</b>\nUnable to retrieve your ID."
+        response_text = "<b>Hello!</b>\nUnable to retrieve your ID."
     else:
         user_id: int = message.from_user.id
 
-        response_text: str = (
+        response_text = (
             f"<b>Hello!</b> I'm a job tracker bot.\n"
             f"Your ID: {user_id}.\n"
             f"Contact the administrator."

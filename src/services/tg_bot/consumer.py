@@ -36,7 +36,8 @@ class RabbitMQConsumer(RabbitMQClient):
 
         Args:
             url: RabbitMQ connection URL (e.g., "amqp://guest:guest@localhost/").
-            connection_ttl: Connection time-to-live in seconds. Defaults to 60.
+            connection_ttl: Connection time-to-live in seconds.
+              Defaults to 60.
         """
         super().__init__(url=url, connection_ttl=connection_ttl)
 
@@ -66,7 +67,7 @@ async def rabbit_consumer(
         consumer_config: Consumer configuration including queue settings.
         user_ids: List of Telegram user IDs to send vacancy messages to.
         send_timeout: Timeout in seconds for each send_message call.
-    """
+    """  # noqa: W505
     log.info("Starting RabbitMQ consumer")
     try:
         async with RabbitMQConsumer(
@@ -92,6 +93,7 @@ async def rabbit_consumer(
 
             async with queue.iterator() as queue_iter:
                 async for message in queue_iter:
+                    await asyncio.sleep(1)
                     log.debug("Received message from queue: %s", queue.name)
                     recived_vacancy_entity = RecivedVacancyEntity.from_json(
                         json_bytes=message.body,
@@ -115,6 +117,7 @@ async def rabbit_consumer(
                             )
 
                         await message.ack()
+
                         log.debug("Successfully sent message to users")
                     except asyncio.CancelledError:
                         log.info("Consumer task cancelled")
@@ -123,7 +126,7 @@ async def rabbit_consumer(
                     except TimeoutError:
                         await message.reject()
                         log.error("Timeout while sending vacancy message")
-                    except Exception as exc:
+                    except Exception as exc:  # noqa: BLE001
                         await message.reject()
                         log.error("Failed to send vacancy message: %s", exc)
 

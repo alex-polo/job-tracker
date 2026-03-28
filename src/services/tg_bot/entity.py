@@ -16,8 +16,8 @@ class IReceivedConsumedMessage(ABC):
     formatted for display in Telegram and deserialized from JSON bytes.
 
     Attributes:
-        format_message: Abstract method to format the message for Telegram.
-        from_json: Abstract class method to create instance from JSON bytes.
+        format_message: Abstract method to format the message.
+        from_json: Abstract class method to create instance from JSON.
     """
 
     @abstractmethod
@@ -59,7 +59,8 @@ class RecivedVacancyEntity(IReceivedConsumedMessage):
         date: Date when the vacancy was posted.
     """
 
-    tag: str
+    main_tag: str
+    tags: list[str]
     title: str
     company: str
     salary: str
@@ -95,7 +96,7 @@ class RecivedVacancyEntity(IReceivedConsumedMessage):
             str: Formatted vacancy message ready for Telegram.
         """
         return (
-            f"#{self.tag}\n"
+            f"#{self.main_tag} {' '.join(self.tags)}\n"
             f"<b>{self.title}</b>\n\n"
             f"Компания: {self.company}\n"
             f"З/П: {self.salary}\n"  # noqa: RUF001
@@ -123,7 +124,9 @@ class RecivedVacancyEntity(IReceivedConsumedMessage):
         log.debug("Parsed vacancy data: %s", data)
 
         title: str = data.get("title", "unoknown")
-        tag: str = data.get("tag", "unoknown")
+        main_tag: str = data.get("main_tag", "unoknown")
+        raw_tags: str | list[str] = data.get("tags", [])
+        tags: list[str] = [raw_tags] if isinstance(raw_tags, str) else raw_tags
         company: str = data.get("company", "unoknown")
         salary: str = data.get("salary", "unoknown")
         experience: str = data.get("experience", "unoknown")
@@ -133,7 +136,8 @@ class RecivedVacancyEntity(IReceivedConsumedMessage):
         date: str = data.get("date", "unoknown")
 
         entity = cls(
-            tag=tag,
+            main_tag=main_tag,
+            tags=tags,
             title=title,
             company=company,
             salary=salary,
@@ -150,7 +154,7 @@ class RecivedVacancyEntity(IReceivedConsumedMessage):
         """Return string representation of the entity."""
         return (
             f"RecivedVacancyEntity(title={self.title!r}, "
-            f"tag={self.tag!r}, "
+            f"tag={self.main_tag!r}, "
             f"company={self.company!r}, "
             f"salary={self.salary!r}, "
             f"location={self.location!r}, "
