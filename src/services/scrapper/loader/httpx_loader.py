@@ -28,11 +28,14 @@ class HttpxLoader(ILoader):
         """
         self._settings = settings
 
-    async def load(self, url: str) -> str:
+    async def load(
+        self, url: str, params: dict[str, str] | None = None
+    ) -> str:
         """Fetch HTML content from the specified URL.
 
         Args:
             url: The URL to fetch content from.
+            params: URL parameters to pass to the request.
 
         Returns:
             Raw HTML response text.
@@ -56,7 +59,10 @@ class HttpxLoader(ILoader):
             ),
         ) as client:
             try:
-                response = await client.get(url)
+                response = await client.get(
+                    url,
+                    params=params,
+                )
                 log.info("Response status code: %s", response.status_code)
                 response.raise_for_status()
                 return response.text
