@@ -61,7 +61,7 @@ class DatabaseManager:
             AsyncSession: An active SQLAlchemy asynchronous session.
 
         Raises:
-            Exception: Re-raises any exception occurred during the transaction
+            Exception: Re-raises any exc occurred during the transaction
                 after performing a rollback.
         """
         async with self._async_session_maker() as session:
@@ -75,5 +75,5 @@ class DatabaseManager:
 
 
 DB_MANAGER: Final[DatabaseManager] = DatabaseManager(
-    db_settings=DatabaseSettings()  # type: ignore
+    db_settings=DatabaseSettings()  # pyright: ignore[reportCallIssue]
 )

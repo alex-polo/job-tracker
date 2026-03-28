@@ -17,7 +17,7 @@ class Base(AsyncAttrs, DeclarativeBase, IntIdMixin):
     __abstract__ = True
 
     metadata = MetaData(
-        naming_convention=DatabaseSettings().naming_convention,  # type: ignore
+        naming_convention=DatabaseSettings().naming_convention,  # pyright: ignore[reportCallIssue]
     )
 
     @declared_attr.directive
