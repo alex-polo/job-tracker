@@ -131,7 +131,7 @@ class RabbitMQClient(ABC):
             log.info("Connected to RabbitMQ")
 
             log.debug("Opening channel...")
-            self.channel = await self.connection.channel(  # type: ignore
+            self.channel = await self.connection.channel(
                 publisher_confirms=self.publisher_confirms,
             )
             log.info("Channel opened")
