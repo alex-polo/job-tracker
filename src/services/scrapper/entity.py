@@ -1,7 +1,7 @@
 import hashlib
 import json
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -31,8 +31,9 @@ class VacancyEntity:
     link: str
     location: str
     date: str
-    raw_data: str
-    tag: str | None = None
+    raw_data: dict[str, Any]
+    main_tag: str | None = None
+    tags: list[str] | None = None
 
     @property
     def hash(self) -> str:
@@ -41,7 +42,7 @@ class VacancyEntity:
         The hash is based on the core content (title, company, salary,
         experience, and description).
         Metadata like 'link', 'location', or 'date' is excluded
-        to ensure duplicates are detected even if posted under different URLs.
+        to ensure duplicates are detected even.
 
         Returns:
             str: Hexadecimal SHA-256 hash string.
@@ -56,13 +57,14 @@ class VacancyEntity:
         return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
     def to_json(self) -> bytes:
-        """Returns a JSON-compatible representation of the VacancyEntity.
+        """Returns a JSON-compatible representation.
 
         Returns:
             bytes: JSON-encoded string.
         """
         return json.dumps({
-            "tag": self.tag,
+            "main_tag": self.main_tag,
+            "tags": self.tags,
             "title": self.title,
             "company": self.company,
             "salary": self.salary,
@@ -94,7 +96,7 @@ class VacanciesList:
 
     @property
     def unique_hashes(self) -> list[str]:
-        """Returns a list of unique vacancy hashes present in the collection.
+        """Returns a list of unique vacancy hashes present.
 
         Useful for bulk-checking existing records in a database.
 
@@ -107,7 +109,8 @@ class VacanciesList:
         """Enables direct iteration over the collection.
 
         Returns:
-            Iterator[VacancyEntity]: An iterator for the internal vacancy list.
+            Iterator[VacancyEntity]:
+                An iterator for the internal vacancy list.
         """
         return iter(self._vacancies)
 
