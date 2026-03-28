@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING
 
 from apscheduler import events
@@ -53,10 +53,10 @@ class ParseScheduler:
         """Log errors from failed jobs.
 
         Called automatically by APScheduler on job failure.
-        Does not suppress exceptions — only provides centralized logging.
+        Does not suppress exceptions — only provides logging.
 
         Args:
-            event: APScheduler event containing job_id and exception details.
+            event: APScheduler event containing job_id and exc details.
         """
         if event.exception:
             log.error(f"Error in task: {event.job_id}: {event.exception}")
@@ -64,32 +64,31 @@ class ParseScheduler:
     def add_job(
         self,
         job_id: str,
-        func: Callable,
+        func: Callable[..., object],
         interval_minutes: int,
-        task_args: tuple | None,
+        task_args: tuple[object, ...] | None = None,
         stagger_first_run: bool = True,
         offset_seconds: int = 0,
     ) -> None:
         """Schedule a periodic task with configurable first run time.
 
-        First run: `datetime.now() + offset_seconds` (plus optional random
-        stagger). Subsequent runs: every `interval_minutes`.
+        First run: `datetime.now() + offset_seconds`.
+        Subsequent runs: every `interval_minutes`.
         Duplicate job_ids are replaced (replace_existing=True).
 
         Behavior:
-            - max_instances=1: concurrent runs are blocked; next run waits.
+            - max_instances=1: concurrent runs are blocked;.
             - coalesce=True: missed runs (misfire) are merged into one
               execution.
-            - misfire_grace_time=60s: missed runs older than 60s are skipped.
+            - misfire_grace_time=60s: missed runs older than 60s.
 
         Args:
             job_id: Unique identifier for the job (must be string).
             func: Async or sync callable to execute periodically.
             interval_minutes: Interval between executions in minutes.
             task_args: Positional arguments passed to func on each run.
-            stagger_first_run: If True, adds random delay (0-30% of interval)
-                to first run to avoid simultaneous execution of multiple jobs.
-            offset_seconds: Additional fixed delay in seconds for first run.
+            stagger_first_run: If True, adds random delay)
+            offset_seconds: Additional fixed delay in seconds.
                 Useful for staggering multiple jobs of the same type.
         """
         self.scheduler.add_job(
@@ -102,7 +101,8 @@ class ParseScheduler:
             coalesce=True,
             max_instances=1,
             stagger_first_run=stagger_first_run,
-            next_run_time=datetime.now() + timedelta(seconds=offset_seconds),
+            next_run_time=datetime.now(tz=UTC)
+            + timedelta(seconds=offset_seconds),
         )
         log.info(f"Add task '{job_id}': every {interval_minutes} minutes")
 
@@ -110,7 +110,7 @@ class ParseScheduler:
         """Start the scheduler.
 
         Jobs with next_run_time <= now() will execute immediately.
-        Non-blocking for AsyncIOScheduler — caller must keep event loop alive.
+        Non-blocking for AsyncIOScheduler — caller must keep event loop.
         """
         self.scheduler.start()
         log.info("ParseScheduler started")

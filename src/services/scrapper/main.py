@@ -2,49 +2,21 @@ import asyncio
 import logging
 from typing import TYPE_CHECKING, Final
 
-from src.core.conf.classes import HttpxSettings, RabbitMQSettings, SourceType
+from src.core.conf.classes import RabbitMQSettings, SourceType
 from src.core.database import DB_MANAGER
-from src.services.scrapper.loader.httpx_loader import HttpxLoader
 from src.services.scrapper.messaging.rabbitmq import MQPublisher
-from src.services.scrapper.parsing.hh_parsing import HeadHunterParser
+from src.services.scrapper.tasks.make import make_headhunter_polling_task
 
-from .repositories.vacancy import VacancyRepository
 from .scheduler import ParseScheduler
-from .tasks.polling_task import PollingTask
 
 if TYPE_CHECKING:
     from src.core.conf import ScrapperSettings
     from src.core.conf.mq_topology import RabbitMQPublisherConfig
 
-    from .tasks import ISchedulerTask
 
 log = logging.getLogger(__name__)
 
 OFFSET_SECONDS: Final[int] = 5
-
-
-def make_polling_task(
-    job_tag: str,
-    mq_publisher: MQPublisher,
-    loader_settings: HttpxSettings,
-) -> ISchedulerTask:
-    """Create a polling task instance.
-
-    Args:
-        job_tag: The job tag.
-        mq_publisher: The RabbitMQ publisher instance.
-        loader_settings: HTTPX settings.
-
-    Returns:
-        A configured PollingTask instance.
-    """
-    return PollingTask(
-        job_tag=job_tag,
-        loader=HttpxLoader(settings=loader_settings),
-        parser=HeadHunterParser(),
-        repository=VacancyRepository(),
-        mq_publisher=mq_publisher,
-    )
 
 
 async def main(
@@ -54,8 +26,9 @@ async def main(
 ) -> None:
     """Run the main observer loop.
 
-    Initializes the RabbitMQ publisher, configures the scheduler with jobs
-    for each source, and starts polling. Gracefully shuts down on interruption.
+    Initializes the RabbitMQ publisher, configures the scheduler
+    with jobs for each source, and starts polling. Gracefully
+    shuts down on interruption.
 
     Args:
         settings: Observer configuration settings.
@@ -77,13 +50,15 @@ async def main(
             if source.source_type == SourceType.HH:
                 scheduler.add_job(
                     job_id=f"{source.source_type.value}_{source.url}",
-                    func=make_polling_task(
-                        job_tag=source.tag,
+                    func=make_headhunter_polling_task(
+                        main_tag=source.tag,
+                        url=source.url,
+                        keywords=source.keywords,
                         mq_publisher=mq_publisher,
                         loader_settings=settings.httpx_settings,
                     ).run,
                     interval_minutes=source.period_minutes,
-                    task_args=(source.url,),
+                    # task_args=(source.url,),  # noqa: ERA001
                     stagger_first_run=True,  # Распределяем первый запуск
                     offset_seconds=idx * OFFSET_SECONDS,
                 )
@@ -107,16 +82,16 @@ def run_observer(
     rabbitmq_settings: RabbitMQSettings,
     publisher_settings: RabbitMQPublisherConfig,
 ) -> None:
-    """Entry point for running the observer.
+    """Entry point for running the screpper.
 
-    Initializes and runs the observer service using asyncio.
+    Initializes and runs the scrapper service using asyncio.
 
     Args:
         settings: Observer configuration settings.
         rabbitmq_settings: RabbitMQ connection settings.
         publisher_settings: RabbitMQ publisher topology configuration.
     """
-    log.info("Start observer ...")
+    log.info("Start scrapper ...")
     asyncio.run(
         main(
             settings=settings,
