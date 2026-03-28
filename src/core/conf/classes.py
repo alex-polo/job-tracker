@@ -91,6 +91,7 @@ class SourceSettings(BaseModel):
     url: str
     tag: str
     source_type: SourceType
+    keywords: str
     period_minutes: int
 
 
@@ -114,11 +115,11 @@ class ScrapperSettings(BaseSettingsConfig):
     scheduler: ScrapperSchedulerSettings
     sources: list[SourceSettings]
     httpx_settings: HttpxSettings = Field(
-        validation_alias=AliasPath("scrapper", "httpx_settings")
+        default=..., validation_alias=AliasPath("scrapper", "httpx_settings")
     )
 
     logging: LoggingSettings = Field(
-        validation_alias=AliasPath("scrapper", "logging")
+        default=..., validation_alias=AliasPath("scrapper", "logging")
     )
 
 
@@ -136,7 +137,7 @@ class TgBotSettings(BaseSettingsConfig):
     tg_bot: TgBotConfig
 
     logging: LoggingSettings = Field(
-        validation_alias=AliasPath("tg_bot", "logging")
+        default=..., validation_alias=AliasPath("tg_bot", "logging")
     )
 
 
@@ -146,10 +147,11 @@ class DatabaseSettings(BaseSettingsConfig):
     _instance: ClassVar[Self | None] = None
 
     database_path: Path = Field(
+        default=...,
         validation_alias=AliasPath(
             "database",
             "database_path",
-        )
+        ),
     )
     echo: bool = Field(
         default=False,
@@ -180,7 +182,7 @@ class DatabaseSettings(BaseSettingsConfig):
         ),
     )
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def naming_convention(self) -> dict[str, str]:
         """SQLAlchemy naming convention."""
@@ -203,7 +205,7 @@ class DatabaseSettings(BaseSettingsConfig):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
 
-            cls._instance.__init__(*args, **kwargs)
+            cls._instance.__init__(*args, **kwargs)  # type: ignore
 
             if cls._instance.database_path:
                 db_dir: Path = cls._instance.database_path.parent
@@ -215,9 +217,9 @@ class DatabaseSettings(BaseSettingsConfig):
 class RabbitMQSettings(BaseSettingsConfig):
     """RabbitMQ settings."""
 
-    url: str = Field(alias="RABBITMQ__URL")
+    url: str = Field(validation_alias="RABBITMQ__URL")
     connection_ttl: int = Field(
-        default=60,
+        default=...,
         validation_alias=AliasPath("rabbitmq", "connection_ttl"),
     )
 

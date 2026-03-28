@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 
 import sentry_sdk
 
-# from sentry_sdk.integrations.fastapi import FastApiIntegration
+# from sentry_sdk.integrations.fastapi import FastApiIntegration  # noqa: E501, ERA001, W505
 from sentry_sdk.integrations.logging import LoggingIntegration
 
 if TYPE_CHECKING:
@@ -19,7 +19,7 @@ def setup_logging(settings: LoggingSettings) -> None:
             traces_sample_rate=settings.sentry_traces_sample_rate,
             enable_tracing=True,
             integrations=[
-                # FastApiIntegration(),
+                # FastApiIntegration(),  # noqa: ERA001
                 LoggingIntegration(
                     level=logging.INFO,
                     event_level=getattr(logging, settings.sentry_log_level),

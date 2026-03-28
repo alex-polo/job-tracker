@@ -5,7 +5,7 @@ from aio_pika import ExchangeType
 from .classes import ExcangeConfig, QueueConfig
 
 DLX_MESSGAE_TTL: Final[int] = 7 * 24 * 60 * 60 * 1000  # 7 days
-MESSAGE_TTL: Final[int] = 60 * 60 * 1000  # 1 hour
+MESSAGE_TTL: Final[int] = 2 * 24 * 60 * 60 * 1000  # 2 days
 
 dlx_exchange_config = ExcangeConfig(
     name="dlx_job_tracker",
