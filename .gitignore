@@ -8,3 +8,5 @@ __pycache__
 data/
 logs/
 _Dockerfile
+.settings.toml
+.env.prod
