@@ -13,6 +13,7 @@ dependencies = [
     "apscheduler>=3.11.2",
     "bs4>=0.0.2",
     "httpx>=0.28.1",
+    "openai>=2.30.0",
     "playwright>=1.58.0",
     "pre-commit>=4.5.1",
     "pydantic>=2.12.5",
