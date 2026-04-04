@@ -55,6 +55,7 @@ services:
       - RUN_MIGRATIONS=true
     volumes:
       - ./data:/app/data
+      - ./resume:/app/resume
       - ./settings.toml:/app/settings.toml:ro
     networks:
       - app-network
