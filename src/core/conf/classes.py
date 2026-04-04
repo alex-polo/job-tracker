@@ -1,6 +1,6 @@
 import enum
 from dataclasses import dataclass
-from pathlib import Path  # noqa: TC003
+from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar, Literal, Self
 from zoneinfo import ZoneInfo
 
@@ -91,8 +91,15 @@ class SourceSettings(BaseModel):
     url: str
     tag: str
     source_type: SourceType
-    keywords: str
+    search_keywords: str
     period_minutes: int
+    resume: Path
+
+    @property
+    def resume_text(self) -> str:
+        """Get resume text."""
+        with self.resume.open(encoding="utf-8") as f:
+            return f.read()
 
 
 class HttpxSettings(BaseModel):
@@ -107,17 +114,25 @@ class HttpxSettings(BaseModel):
     http2: bool = False
 
 
+class AIAnalystSettings(BaseModel):
+    """AI Analyst settings."""
+
+    base_url: str
+    api_key: str
+    model: str
+
+
 class ScrapperSettings(BaseSettingsConfig):
     """Application settings."""
 
     ENVIRONMENT: str
     project: ProjectSettings
     scheduler: ScrapperSchedulerSettings
+    ai_analyst: AIAnalystSettings
     sources: list[SourceSettings]
     httpx_settings: HttpxSettings = Field(
         default=..., validation_alias=AliasPath("scrapper", "httpx_settings")
     )
-
     logging: LoggingSettings = Field(
         default=..., validation_alias=AliasPath("scrapper", "logging")
     )

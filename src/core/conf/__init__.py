@@ -1,4 +1,5 @@
 from .classes import (
+    AIAnalystSettings,
     BaseSettingsConfig,
     DatabaseSettings,
     ExcangeConfig,
@@ -23,6 +24,7 @@ from .mq_topology import (
 )
 
 __all__ = (
+    "AIAnalystSettings",
     "BaseSettingsConfig",
     "DatabaseSettings",
     "ExcangeConfig",
