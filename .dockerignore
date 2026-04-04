@@ -1,4 +1,7 @@
 settings.toml
+settings.toml.example
+resume/
+scripts/
 .env.dist
 .venv
 .git
