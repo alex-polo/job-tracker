@@ -4,11 +4,12 @@ from typing import TYPE_CHECKING
 from .base_task import ISchedulerTask
 
 if TYPE_CHECKING:
+    from src.services.scrapper.ai_analyst.analyst import VacancyAIAnalyst
     from src.services.scrapper.entity import VacanciesList
-    from src.services.scrapper.loader.base import ILoader
+    from src.services.scrapper.loader import ILoader
     from src.services.scrapper.messaging.rabbitmq import MQPublisher
-    from src.services.scrapper.parsing.base import IParser
-    from src.services.scrapper.repositories.base import IRepository
+    from src.services.scrapper.parsing import IParser
+    from src.services.scrapper.repositories import IRepository
 
 log = logging.getLogger(__name__)
 
@@ -22,24 +23,29 @@ class PollingTask(ISchedulerTask):
 
     def __init__(
         self,
-        url: str,
-        request_params: dict[str, str],
-        main_tag: str,
-        tags: list[str],
         loader: ILoader,
         parser: IParser,
         repository: IRepository,
         mq_publisher: MQPublisher,
+        ai_analyst: VacancyAIAnalyst,
+        url: str,
+        request_params: dict[str, str],
+        main_tag: str,
+        tags: list[str],
+        resume: str,
     ) -> None:
         """Initialize task."""
         self._loader = loader
         self._parser = parser
         self._repository = repository
         self._mq_publisher = mq_publisher
-        self._url = url
-        self._main_tag = main_tag
-        self._tags = tags
-        self._request_params = request_params
+        self.ai_analyst = ai_analyst
+
+        self.url = url
+        self.main_tag = main_tag
+        self.tags = tags
+        self.request_params = request_params
+        self.resume = resume
 
     async def run(self) -> None:
         """Execute the polling task.
@@ -50,12 +56,12 @@ class PollingTask(ISchedulerTask):
         Args:
             url: The URL to fetch vacancies from API.
         """
-        log.info("Polling task started for URL: %s", self._url)
+        log.info("Polling task started for URL: %s", self.url)
         try:
             log.info("Loading HTML data from source")
             download_data: str = await self._loader.load(
-                url=self._url,
-                params=self._request_params,
+                url=self.url,
+                params=self.request_params,
             )
             log.info("Data loaded, size: %d bytes", len(download_data))
 
@@ -74,8 +80,16 @@ class PollingTask(ISchedulerTask):
                         vacancy.title,
                         vacancy.link,
                     )
-                    vacancy.main_tag = self._main_tag
-                    vacancy.tags = self._tags
+                    vacancy.main_tag = self.main_tag
+                    vacancy.tags = self.tags
+
+                    ai_data = await self.ai_analyst.analyze_score(
+                        vacancy_text=vacancy.description,
+                        resume_text=self.resume,
+                    )
+                    vacancy.ai_score = ai_data.get("score")
+                    vacancy.ai_reasons = ai_data.get("main_reasons")
+                    vacancy.ai_missing_skills = ai_data.get("missing_skills")
 
                     if await self._mq_publisher.send_message(vacancy=vacancy):
                         await self._repository.save(vacancy_hash=vacancy.hash)

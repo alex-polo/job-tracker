@@ -32,6 +32,9 @@ class VacancyEntity:
     location: str
     date: str
     raw_data: dict[str, Any]
+    ai_score: str | None = None
+    ai_reasons: str | None = None
+    ai_missing_skills: str | None = None
     main_tag: str | None = None
     tags: list[str] | None = None
 
@@ -70,6 +73,9 @@ class VacancyEntity:
             "salary": self.salary,
             "experience": self.experience,
             "description": self.description,
+            "ai_score": self.ai_score,
+            "ai_reasons": self.ai_reasons,
+            "ai_missing_skills": self.ai_missing_skills,
             "link": self.link,
             "location": self.location,
             "date": self.date,

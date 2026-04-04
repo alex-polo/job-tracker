@@ -2,8 +2,9 @@ import asyncio
 import logging
 from typing import TYPE_CHECKING, Final
 
-from src.core.conf.classes import RabbitMQSettings, SourceType
+from src.core.conf import RabbitMQSettings, SourceType
 from src.core.database import DB_MANAGER
+from src.services.scrapper.ai_analyst.analyst import VacancyAIAnalyst
 from src.services.scrapper.messaging.rabbitmq import MQPublisher
 from src.services.scrapper.tasks.make import make_headhunter_polling_task
 
@@ -11,12 +12,22 @@ from .scheduler import ParseScheduler
 
 if TYPE_CHECKING:
     from src.core.conf import ScrapperSettings
+    from src.core.conf.classes import AIAnalystSettings
     from src.core.conf.mq_topology import RabbitMQPublisherConfig
 
 
 log = logging.getLogger(__name__)
 
 OFFSET_SECONDS: Final[int] = 5
+
+
+def make_ai_analyst(conf: AIAnalystSettings) -> VacancyAIAnalyst:
+    """Create AI Analyst instance."""
+    return VacancyAIAnalyst(
+        base_url=conf.base_url,
+        api_key=conf.api_key,
+        model=conf.model,
+    )
 
 
 async def main(
@@ -35,6 +46,7 @@ async def main(
         rabbitmq_settings: RabbitMQ connection settings.
         publisher_settings: RabbitMQ publisher topology configuration.
     """
+    ai_analyst = make_ai_analyst(settings.ai_analyst)
     async with MQPublisher(
         rabbitmq_settings=rabbitmq_settings,
         publisher_settings=publisher_settings,
@@ -51,15 +63,13 @@ async def main(
                 scheduler.add_job(
                     job_id=f"{source.source_type.value}_{source.url}",
                     func=make_headhunter_polling_task(
-                        main_tag=source.tag,
-                        url=source.url,
-                        keywords=source.keywords,
                         mq_publisher=mq_publisher,
                         loader_settings=settings.httpx_settings,
+                        ai_analyst=ai_analyst,
+                        source_settings=source,
                     ).run,
                     interval_minutes=source.period_minutes,
-                    # task_args=(source.url,),  # noqa: ERA001
-                    stagger_first_run=True,  # Распределяем первый запуск
+                    stagger_first_run=True,
                     offset_seconds=idx * OFFSET_SECONDS,
                 )
                 log.debug("Added job for source: %s", source.source_type)
