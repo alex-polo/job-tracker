@@ -43,11 +43,15 @@ services:
       - 1.1.1.1
     extra_hosts:
       - "glitchtip.local:host-gateway"
+      - "lm-studio.local:host-gateway"
     restart: unless-stopped
     command: ["run_scrapper"]
     environment:
-      - RABBITMQ__URL=${RABBITMQ__URL?Variable not set}
       - ENVIRONMENT=${ENVIRONMENT?Variable not set}
+      - RABBITMQ__URL=${RABBITMQ__URL?Variable not set}
+      - AI_ANALYST__BASE_URL=${AI_ANALYST__BASE_URL?Variable not set}
+      - AI_ANALYST__API_KEY=${AI_ANALYST__API_KEY?Variable not set}
+      - AI_ANALYST__MODEL=${AI_ANALYST__MODEL?Variable not set}
       - RUN_MIGRATIONS=true
     volumes:
       - ./data:/app/data
