@@ -69,6 +69,9 @@ class RecivedVacancyEntity(IReceivedConsumedMessage):
     link: str
     location: str
     date: str
+    ai_score: str
+    ai_reasons: str
+    ai_missing_skills: str
 
     def create_keyboard(self) -> InlineKeyboardMarkup:
         """Create inline keyboard with action button.
@@ -104,6 +107,10 @@ class RecivedVacancyEntity(IReceivedConsumedMessage):
             f"Опыт работы: {self.experience}\n"
             f"Дата: {self.date}\n\n"
             f"Описание:\n{self.description}\n\n"
+            f"AI analyst:\n"
+            f"<i>''{self.ai_reasons}''</i>\n\n"
+            f"Missings stack: {self.ai_missing_skills}\n\n"
+            f"Подходит на <b>{self.ai_score} %</b>\n\n"
         )
 
     @classmethod
@@ -134,6 +141,9 @@ class RecivedVacancyEntity(IReceivedConsumedMessage):
         link: str = data.get("link", "unoknown")
         location: str = data.get("location", "unoknown")
         date: str = data.get("date", "unoknown")
+        ai_score: str = data.get("ai_score", "000")
+        ai_reasons: str = data.get("ai_reasons", "skill empty")
+        ai_missing_skills: str = data.get("ai_missing_skills", "not found")
 
         entity = cls(
             main_tag=main_tag,
@@ -146,6 +156,9 @@ class RecivedVacancyEntity(IReceivedConsumedMessage):
             link=link,
             location=location,
             date=date,
+            ai_score=ai_score,
+            ai_reasons=ai_reasons,
+            ai_missing_skills=ai_missing_skills,
         )
         log.debug("Created RecivedVacancyEntity: %s", entity)
         return entity
